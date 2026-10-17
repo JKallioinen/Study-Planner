@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import db from "../database/sqlite";
+import db, { saveCourse } from "../database/sqlite";
 
 export default function EditTaskScreen({
   route,
@@ -30,7 +30,12 @@ export default function EditTaskScreen({
     task.status || "Pending"
   );
 
+  const [taskType, setTaskType] = useState(
+    task.taskType || "Assignment"
+  );
+
   const updateTask = () => {
+    const savedCourse = saveCourse(course);
     db.runSync(
       `
       UPDATE tasks
@@ -40,16 +45,18 @@ export default function EditTaskScreen({
         description=?,
         dueDate=?,
         priority=?,
-        status=?
+        status=?,
+        taskType=?
       WHERE id=?
       `,
       [
         title,
-        course,
+        savedCourse?.name || "",
         description,
         dueDate,
         priority,
         status,
+        taskType,
         task.id,
       ]
     );
@@ -95,6 +102,26 @@ export default function EditTaskScreen({
         value={dueDate}
         onChangeText={setDueDate}
       />
+
+      <Text style={styles.label}>
+        Type
+      </Text>
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={taskType}
+          onValueChange={setTaskType}
+        >
+          <Picker.Item
+            label="Assignment"
+            value="Assignment"
+          />
+          <Picker.Item
+            label="Exam"
+            value="Exam"
+          />
+        </Picker>
+      </View>
 
       <Text style={styles.label}>
         Priority

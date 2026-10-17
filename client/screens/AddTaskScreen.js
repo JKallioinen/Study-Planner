@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import db from "../database/sqlite";
+import db, { saveCourse } from "../database/sqlite";
 
 export default function AddTaskScreen() {
   const [title, setTitle] = useState("");
@@ -23,6 +23,9 @@ export default function AddTaskScreen() {
   const [status, setStatus] =
     useState("Pending");
 
+  const [taskType, setTaskType] =
+    useState("Assignment");
+
   const saveTask = () => {
     if (!title.trim()) {
       Alert.alert(
@@ -32,18 +35,20 @@ export default function AddTaskScreen() {
       return;
     }
 
+    const savedCourse = saveCourse(course);
     db.runSync(
       `
       INSERT INTO tasks
       (
         title,
-        course,
+        savedCourse?.name || "",
         description,
         dueDate,
         priority,
-        status
+        status,
+        taskType
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
       [
         title,
@@ -52,6 +57,7 @@ export default function AddTaskScreen() {
         dueDate,
         priority,
         status,
+        taskType,
       ]
     );
 
@@ -66,6 +72,7 @@ export default function AddTaskScreen() {
     setDueDate("");
     setPriority("Medium");
     setStatus("Pending");
+    setTaskType("Assignment");
   };
 
   return (
@@ -101,6 +108,26 @@ export default function AddTaskScreen() {
         value={dueDate}
         onChangeText={setDueDate}
       />
+
+      <Text style={styles.label}>
+        Type
+      </Text>
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={taskType}
+          onValueChange={setTaskType}
+        >
+          <Picker.Item
+            label="Assignment"
+            value="Assignment"
+          />
+          <Picker.Item
+            label="Exam"
+            value="Exam"
+          />
+        </Picker>
+      </View>
 
       <Text style={styles.label}>
         Priority
