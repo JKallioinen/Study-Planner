@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import db, { saveCourse } from "../database/sqlite";
+import db from "../database/sqlite";
 
 export default function EditTaskScreen({
   route,
@@ -35,7 +35,6 @@ export default function EditTaskScreen({
   );
 
   const updateTask = () => {
-    const savedCourse = saveCourse(course);
     db.runSync(
       `
       UPDATE tasks
@@ -51,7 +50,7 @@ export default function EditTaskScreen({
       `,
       [
         title,
-        savedCourse?.name || "",
+        course.trim(),
         description,
         dueDate,
         priority,

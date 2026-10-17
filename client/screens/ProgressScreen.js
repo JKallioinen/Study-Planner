@@ -18,15 +18,13 @@ export default function ProgressScreen({ navigation }) {
     setCourses(
       db.getAllSync(`
         SELECT
-          courses.id,
-          courses.name,
+          TRIM(course) AS name,
           COUNT(tasks.id) AS total,
           SUM(CASE WHEN tasks.status = 'Completed' THEN 1 ELSE 0 END) AS completed
-        FROM courses
-        LEFT JOIN tasks
-          ON LOWER(TRIM(tasks.course)) = LOWER(courses.name)
-        GROUP BY courses.id, courses.name
-        ORDER BY courses.id
+        FROM tasks
+        WHERE course IS NOT NULL AND TRIM(course) <> ''
+        GROUP BY TRIM(course) COLLATE NOCASE
+        ORDER BY MIN(id)
       `)
     );
   }, []);
@@ -45,7 +43,7 @@ export default function ProgressScreen({ navigation }) {
 
       {courses.length === 0 ? (
         <Text style={styles.emptyText}>
-          Add a course to start tracking your progress.
+          Courses appear here when you add an assignment or exam.
         </Text>
       ) : (
         courses.map((course, index) => {
@@ -57,12 +55,11 @@ export default function ProgressScreen({ navigation }) {
 
           return (
             <Pressable
-              key={course.id}
+              key={course.name.toLowerCase()}
               accessibilityRole="button"
               onPress={() =>
                 navigation.navigate("CourseDetails", {
                   course: course.name,
-                  courseId: course.id,
                   color,
                   symbol: courseSymbols[index % courseSymbols.length],
                 })
@@ -112,16 +109,6 @@ export default function ProgressScreen({ navigation }) {
         })
       )}
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => navigation.navigate("AddCourse")}
-        style={({ pressed }) => [
-          styles.addButton,
-          pressed && styles.addButtonPressed,
-        ]}
-      >
-        <Text style={styles.addButtonText}>＋ Add course</Text>
-      </Pressable>
     </ScrollView>
   );
 }
@@ -216,20 +203,5 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     textAlign: "center",
     width: 42,
-  },
-  addButton: {
-    alignItems: "center",
-    backgroundColor: "#2D7BEA",
-    borderRadius: 12,
-    marginTop: 2,
-    paddingVertical: 15,
-  },
-  addButtonPressed: {
-    opacity: 0.8,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "600",
   },
 });

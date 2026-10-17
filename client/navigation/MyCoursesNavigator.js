@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import AddCourseScreen from "../screens/AddCourseScreen";
 import CourseDetailsScreen from "../screens/CourseDetailsScreen";
 import ProgressScreen from "../screens/ProgressScreen";
 
@@ -31,10 +30,6 @@ export default function MyCoursesNavigator() {
       <Stack.Screen
         name="CourseList"
         component={ProgressScreen}
-      />
-      <Stack.Screen
-        name="AddCourse"
-        component={AddCourseScreen}
       />
       <Stack.Screen
         name="CourseDetails"

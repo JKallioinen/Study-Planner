@@ -9,7 +9,7 @@ import {
 } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import db, { saveCourse } from "../database/sqlite";
+import db from "../database/sqlite";
 
 export default function AddTaskScreen() {
   const [title, setTitle] = useState("");
@@ -35,13 +35,12 @@ export default function AddTaskScreen() {
       return;
     }
 
-    const savedCourse = saveCourse(course);
     db.runSync(
       `
       INSERT INTO tasks
       (
         title,
-        savedCourse?.name || "",
+        course,
         description,
         dueDate,
         priority,
@@ -52,7 +51,7 @@ export default function AddTaskScreen() {
     `,
       [
         title,
-        course,
+        course.trim(),
         description,
         dueDate,
         priority,
