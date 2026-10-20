@@ -11,6 +11,12 @@ import CalendarScreen from "../screens/CalendarScreen";
 const Tab =
   createBottomTabNavigator();
 
+const tabIcon = (symbol) => ({ color }) => (
+  <Text style={{ color, fontSize: 22, lineHeight: 26 }}>
+    {symbol}
+  </Text>
+);
+
 export default function TabNavigator() {
   return (
     <Tab.Navigator
@@ -41,16 +47,25 @@ export default function TabNavigator() {
       <Tab.Screen
         name="Home"
         component={HomeScreen}
+        options={{ tabBarIcon: tabIcon("⌂") }}
+      />
+
+      <Tab.Screen
+        name="Courses"
+        component={MyCoursesNavigator}
+        options={{ tabBarIcon: tabIcon("▤") }}
       />
 
       <Tab.Screen
         name="Add"
         component={AddTaskScreen}
+        options={{ tabBarIcon: tabIcon("＋") }}
       />
 
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
+        options={{ tabBarIcon: tabIcon("⚙") }}
       />
 
       <Tab.Screen

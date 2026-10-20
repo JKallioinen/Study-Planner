@@ -60,17 +60,19 @@ export default function AddTaskScreen() {
         description,
         dueDate,
         priority,
-        status
+        status,
+        taskType
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `,
       [
         title,
-        course,
+        course.trim(),
         description,
         formattedDueDate,
         priority,
         status,
+        taskType,
       ]
     );
 
@@ -85,6 +87,7 @@ export default function AddTaskScreen() {
     setDate(new Date());
     setPriority("Medium");
     setStatus("Pending");
+    setTaskType("Assignment");
   };
 
   return (
@@ -133,6 +136,26 @@ export default function AddTaskScreen() {
           onValueChange={onDateChange}
         />
       )}
+
+      <Text style={styles.label}>
+        Type
+      </Text>
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={taskType}
+          onValueChange={setTaskType}
+        >
+          <Picker.Item
+            label="Assignment"
+            value="Assignment"
+          />
+          <Picker.Item
+            label="Exam"
+            value="Exam"
+          />
+        </Picker>
+      </View>
 
       <Text style={styles.label}>
         Priority

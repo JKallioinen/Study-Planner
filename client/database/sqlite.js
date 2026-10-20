@@ -10,8 +10,16 @@ CREATE TABLE IF NOT EXISTS tasks (
   description TEXT,
   dueDate TEXT,
   priority TEXT,
-  status TEXT
+  status TEXT,
+  taskType TEXT NOT NULL DEFAULT 'Assignment'
 );
 `);
+
+const taskColumns = db.getAllSync("PRAGMA table_info(tasks)");
+if (!taskColumns.some((column) => column.name === "taskType")) {
+  db.execSync(
+    "ALTER TABLE tasks ADD COLUMN taskType TEXT NOT NULL DEFAULT 'Assignment'"
+  );
+}
 
 export default db;

@@ -30,6 +30,10 @@ export default function EditTaskScreen({
     task.status || "Pending"
   );
 
+  const [taskType, setTaskType] = useState(
+    task.taskType || "Assignment"
+  );
+
   const updateTask = () => {
     db.runSync(
       `
@@ -40,16 +44,18 @@ export default function EditTaskScreen({
         description=?,
         dueDate=?,
         priority=?,
-        status=?
+        status=?,
+        taskType=?
       WHERE id=?
       `,
       [
         title,
-        course,
+        course.trim(),
         description,
         dueDate,
         priority,
         status,
+        taskType,
         task.id,
       ]
     );
@@ -95,6 +101,26 @@ export default function EditTaskScreen({
         value={dueDate}
         onChangeText={setDueDate}
       />
+
+      <Text style={styles.label}>
+        Type
+      </Text>
+
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={taskType}
+          onValueChange={setTaskType}
+        >
+          <Picker.Item
+            label="Assignment"
+            value="Assignment"
+          />
+          <Picker.Item
+            label="Exam"
+            value="Exam"
+          />
+        </Picker>
+      </View>
 
       <Text style={styles.label}>
         Priority
