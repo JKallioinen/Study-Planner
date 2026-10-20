@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import db from "../database/sqlite";
 
@@ -15,7 +16,9 @@ export default function AddTaskScreen() {
   const [title, setTitle] = useState("");
   const [course, setCourse] = useState("");
   const [description, setDescription] = useState("");
-  const [dueDate, setDueDate] = useState("");
+
+  const [date, setDate] = useState(new Date());
+  const [showPicker, setShowPicker] = useState(false);
 
   const [priority, setPriority] =
     useState("Medium");
@@ -23,8 +26,19 @@ export default function AddTaskScreen() {
   const [status, setStatus] =
     useState("Pending");
 
-  const [taskType, setTaskType] =
-    useState("Assignment");
+  const formatDateString = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const onDateChange = (event, selectedDate) => {
+    setShowPicker(false);
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
+  };
 
   const saveTask = () => {
     if (!title.trim()) {
@@ -34,6 +48,8 @@ export default function AddTaskScreen() {
       );
       return;
     }
+
+    const formattedDueDate = formatDateString(date);
 
     db.runSync(
       `
@@ -53,7 +69,7 @@ export default function AddTaskScreen() {
         title,
         course.trim(),
         description,
-        dueDate,
+        formattedDueDate,
         priority,
         status,
         taskType,
@@ -68,7 +84,7 @@ export default function AddTaskScreen() {
     setTitle("");
     setCourse("");
     setDescription("");
-    setDueDate("");
+    setDate(new Date());
     setPriority("Medium");
     setStatus("Pending");
     setTaskType("Assignment");
@@ -101,12 +117,25 @@ export default function AddTaskScreen() {
         onChangeText={setDescription}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="DD-MM-YYYY"
-        value={dueDate}
-        onChangeText={setDueDate}
-      />
+      {/* Date Picker Trigger Button */}
+      <Text style={styles.label}>Due Date</Text>
+      <TouchableOpacity
+        style={styles.dateButton}
+        onPress={() => setShowPicker(true)}
+      >
+        <Text style={styles.dateButtonText}>
+          📅 {formatDateString(date)}
+        </Text>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onValueChange={onDateChange}
+        />
+      )}
 
       <Text style={styles.label}>
         Type
@@ -220,6 +249,18 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 5,
     marginTop: 5,
+  },
+
+  dateButton: {
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+
+  dateButtonText: {
+    fontSize: 16,
+    color: "#333",
   },
 
   pickerContainer: {

@@ -1,12 +1,12 @@
 import {
   createBottomTabNavigator,
 } from "@react-navigation/bottom-tabs";
-import { Text } from "react-native";
+import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from "../screens/HomeScreen";
 import AddTaskScreen from "../screens/AddTaskScreen";
 import SettingsScreen from "../screens/SettingsScreen";
-import MyCoursesNavigator from "./MyCoursesNavigator";
+import CalendarScreen from "../screens/CalendarScreen";
 
 const Tab =
   createBottomTabNavigator();
@@ -20,14 +20,28 @@ const tabIcon = (symbol) => ({ color }) => (
 export default function TabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: "#2D7BEA",
-        tabBarInactiveTintColor: "#68778D",
-        tabBarStyle: {
-          backgroundColor: "#FFFFFF",
-          borderTopColor: "#E2E8F0",
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: "#4285F4",
+        tabBarInactiveTintColor: "gray",
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Add") {
+            iconName = focused ? "add-circle" : "add-circle-outline";
+          } else if (route.name === "Settings") {
+            iconName = focused ? "settings" : "settings-outline";
+          } else if (route.name === "Calendar") {
+            iconName = focused ? "calendar" : "calendar-outline";
+          } else if (route.name === "Courses") {
+            iconName = focused ? "book" : "book-outline";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
-      }}
+      })}
     >
 
       <Tab.Screen
@@ -52,6 +66,11 @@ export default function TabNavigator() {
         name="Settings"
         component={SettingsScreen}
         options={{ tabBarIcon: tabIcon("⚙") }}
+      />
+
+      <Tab.Screen
+        name="Calendar"
+        component={CalendarScreen}
       />
 
     </Tab.Navigator>
