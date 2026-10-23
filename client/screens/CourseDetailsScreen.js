@@ -17,6 +17,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
   const [showAllExams, setShowAllExams] = useState(false);
 
   const loadTasks = useCallback(() => {
+    // Match course names case-insensitively and ignore stored surrounding spaces.
     setTasks(
       db.getAllSync(
         "SELECT * FROM tasks WHERE LOWER(TRIM(course)) = LOWER(?) ORDER BY id ASC",
@@ -27,6 +28,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
 
   useEffect(() => {
     loadTasks();
+    // Refresh the list when returning to this screen after another screen edits it.
     return navigation.addListener("focus", loadTasks);
   }, [loadTasks, navigation]);
 
@@ -36,6 +38,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
       status,
       task.id,
     ]);
+    // Keep the displayed list in sync without reloading every task.
     setTasks((currentTasks) =>
       currentTasks.map((currentTask) =>
         currentTask.id === task.id
@@ -48,6 +51,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
   const completedTasks = tasks.filter(
     (task) => task.status === "Completed"
   ).length;
+  // An empty course has no progress rather than a division-by-zero result.
   const percentage =
     tasks.length === 0
       ? 0
@@ -114,6 +118,7 @@ export default function CourseDetailsScreen({ route, navigation }) {
   };
 
   const renderSection = (title, items, expanded, setExpanded, isExam) => {
+    // Keep long lists compact until the user chooses to expand them.
     const visibleItems = expanded
       ? items
       : items.slice(0, PREVIEW_LIMIT);
