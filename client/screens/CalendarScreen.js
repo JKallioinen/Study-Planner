@@ -29,20 +29,27 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Cleans up date strings by stripping timestamps if present
+// Ensures date strings are stripped of any timestamps
 const normalizeDate = (value) => {
   if (!value) return "";
   return String(value).split("T")[0].trim();
 };
 
-// Turns 'YYYY-MM-DD' into a readable format like 'October 18'
+// Formats 'YYYY-MM-DD' into a friendly label like 'October 18'
 const formatDate = (dateString) => {
   const [year, month, day] = dateString.split("-");
   if (!year || !month || !day) return dateString;
   return `${MONTHS[Number(month) - 1]} ${Number(day)}`;
 };
 
-// Assigns a specific badge color depending on task priority
+// Formats 'YYYY-MM-DD' into short 'DD.MM' format for upcoming lists
+const formatShortDate = (dateString) => {
+  const [year, month, day] = normalizeDate(dateString).split("-");
+  if (!year || !month || !day) return dateString;
+  return `${day}.${month}.`;
+};
+
+// Assigns dot and badge colors based on task priority level
 const getPriorityColor = (priority) => {
   switch (priority) {
     case "High": return COLORS.purple;
@@ -55,14 +62,17 @@ const getPriorityColor = (priority) => {
 export default function CalendarScreen({ navigation }) {
   const today = new Date();
   
+  // Pre-calculated current date string in YYYY-MM-DD format
   const todayString = normalizeDate(
     `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
   );
 
+  // Component states for tasks data, active month view, and user-selected date
   const [tasks, setTasks] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(todayString);
   const [selectedDate, setSelectedDate] = useState(todayString);
 
+  // Loads all tasks from the local SQLite database
   const loadTasks = () => {
     try {
       const data = db.getAllSync("SELECT * FROM tasks ORDER BY id DESC");
@@ -73,12 +83,14 @@ export default function CalendarScreen({ navigation }) {
     }
   };
 
+  // Reloads tasks automatically whenever the user navigates back to this screen
   useEffect(() => {
     loadTasks();
     const unsubscribe = navigation.addListener("focus", loadTasks);
     return unsubscribe;
   }, [navigation]);
 
+  // Maps database tasks into the format required by react-native-calendars (multi-dots)
   const getMarkedDates = () => {
     let marked = {};
 
@@ -92,11 +104,13 @@ export default function CalendarScreen({ navigation }) {
         marked[date] = { dots: [] };
       }
 
+      // Limit to 3 priority dots per calendar day cell
       if (marked[date].dots.length < 3) {
         marked[date].dots.push({ key: `${task.id}`, color: dotColor });
       }
     });
 
+    // Highlight the user's currently selected calendar date
     marked[selectedDate] = {
       ...(marked[selectedDate] || {}),
       selected: true,
@@ -106,17 +120,20 @@ export default function CalendarScreen({ navigation }) {
     return marked;
   };
 
+  // Filter tasks that match the currently selected date on the calendar
   const selectedTasks = tasks.filter((task) => {
     return normalizeDate(task.dueDate) === selectedDate;
   });
 
+  // Filter pending upcoming tasks (due today or later), sorted chronologically
   const upcomingTasks = tasks
     .filter((task) => {
       const date = normalizeDate(task.dueDate);
       return date && date >= todayString && task.status !== "Completed";
     })
-    .sort((a, b) => normalizeDate(a.dueDate).localeCompare(normalizeDate(b.dueDate)));
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
+  // Toggles task completion status in SQLite and refreshes local state
   const toggleTask = (task) => {
     const newStatus = task.status === "Completed" ? "Pending" : "Completed";
 
@@ -133,17 +150,11 @@ export default function CalendarScreen({ navigation }) {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* App Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.openDrawer?.()} style={styles.menuButton}>
-            <Text style={styles.menuIcon}>☰</Text>
-          </TouchableOpacity>
-          <Text style={styles.logo}>Study planner</Text>
-        </View>
-
+        {/* Header Branding & Title */}
+        <Text style={styles.logo}>Study planner</Text>
         <Text style={styles.screenTitle}>Calendar</Text>
 
-        {/* Built-in Calendar Component */}
+        {/* External Calendar Library Component */}
         <View style={styles.card}>
           <Calendar
             current={currentMonth}
@@ -171,7 +182,7 @@ export default function CalendarScreen({ navigation }) {
           />
         </View>
 
-        {/* Tasks Listed for the Selected Calendar Date */}
+        {/* Selected Date Tasks Card */}
         <View style={styles.card}>
           <Text style={styles.cardSectionTitle}>Tasks for {formatDate(selectedDate)}</Text>
 
@@ -196,15 +207,10 @@ export default function CalendarScreen({ navigation }) {
           )}
         </View>
 
-        {/* All Upcoming Tasks Section */}
-        <View style={styles.upcomingHeader}>
-          <Text style={styles.upcomingTitle}>Upcoming Tasks</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Tasks")}>
-            <Text style={styles.seeAll}>See all</Text>
-          </TouchableOpacity>
-        </View>
-
+        {/* Upcoming Tasks Card */}
         <View style={styles.card}>
+          <Text style={styles.upcomingTitle}>Upcoming Tasks</Text>
+          
           {upcomingTasks.length === 0 ? (
             <Text style={styles.emptyText}>No upcoming tasks.</Text>
           ) : (
@@ -223,7 +229,7 @@ export default function CalendarScreen({ navigation }) {
                 <View style={styles.upcomingInfo}>
                   <Text style={styles.upcomingTaskTitle}>{task.title}</Text>
                   <Text style={styles.upcomingSubtitle}>
-                    {task.course} · {normalizeDate(task.dueDate).split("-").reverse().slice(0, 2).join(".")}.
+                    {task.course} · {formatShortDate(task.dueDate)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -237,7 +243,6 @@ export default function CalendarScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -254,25 +259,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  // --- Header & Titles ---
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  menuButton: {
-    marginRight: 14,
-    paddingVertical: 4,
-    paddingRight: 2,
-  },
-  menuIcon: {
-    fontSize: 25,
-    color: COLORS.text,
-  },
+  // --- Logo & Titles ---
   logo: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: "bold",
-    color: "#111111",
+    marginBottom: 10,
+    color: COLORS.text,
   },
   screenTitle: {
     fontSize: 28,
@@ -339,22 +331,11 @@ const styles = StyleSheet.create({
   },
 
   // --- Upcoming Tasks Section ---
-  upcomingHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
-    paddingHorizontal: 4,
-  },
   upcomingTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: COLORS.text,
-  },
-  seeAll: {
-    color: COLORS.blue,
-    fontWeight: "600",
-    fontSize: 14,
+    marginBottom: 12,
   },
   upcomingRow: {
     flexDirection: "row",
