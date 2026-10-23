@@ -172,16 +172,7 @@ export default function HomeScreen({ navigation }) {
         />
       )}
 
-      {/* <TouchableOpacity
-        style={styles.addButton}
-        onPress={() =>
-          navigation.navigate("AddTask")
-        }
-      >
-        <Text style={styles.addButtonText}>
-          +
-        </Text>
-      </TouchableOpacity> */}
+   
     </View>
   );
 }

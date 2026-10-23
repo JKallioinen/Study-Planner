@@ -1,3 +1,4 @@
+// Group member Nerov kha has created the SQLite database 
 import * as SQLite from "expo-sqlite";
 
 const db = SQLite.openDatabaseSync("tasks.db");

@@ -1,3 +1,4 @@
+// Group member, Nerov worked in Homescreen
 import {
   createBottomTabNavigator,
 } from "@react-navigation/bottom-tabs";
